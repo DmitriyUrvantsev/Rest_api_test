@@ -10,6 +10,7 @@ import '../utils/property_helpers.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/errors/failure.dart';
 
+//
 class PropertyRepositoryImpl implements PropertyRepository {
   @override
   Future<List<PropertyEntity>> fetchProperties({
