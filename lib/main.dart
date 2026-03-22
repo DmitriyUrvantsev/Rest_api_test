@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'core/di/service_locator.dart';
-import 'features/property/domain/repositories/property_repository.dart';
+import 'features/property/domain/usecases/get_properties.dart';
 import 'features/property/presentation/providers/property_provider.dart';
 import 'features/property/presentation/screens/property_screen.dart';
 
@@ -13,7 +13,7 @@ void main() {
       providers: [
         ChangeNotifierProvider(
           create: (_) => PropertyProvider(
-            repository: serviceLocator<PropertyRepository>(),
+            getProperties: serviceLocator<GetProperties>(),
           ),
         ),
       ],

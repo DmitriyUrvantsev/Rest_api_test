@@ -1,12 +1,12 @@
 import 'package:flutter/foundation.dart';
 import '../../domain/entities/property_entity.dart';
-import '../../domain/repositories/property_repository.dart';
+import '../../domain/usecases/get_properties.dart';
 import '../../../../core/errors/failure.dart';
 
 enum ProgressState { initial, loading, success, error }
 
 class PropertyProvider extends ChangeNotifier {
-  final PropertyRepository _repository;
+  final GetProperties _getProperties;
 
   ProgressState _state = ProgressState.initial;
   ProgressState get state => _state;
@@ -29,8 +29,8 @@ class PropertyProvider extends ChangeNotifier {
   String _searchQuery = '';
   String? _city;
 
-  PropertyProvider({required PropertyRepository repository})
-      : _repository = repository;
+  PropertyProvider({required GetProperties getProperties})
+      : _getProperties = getProperties;
 
   Future<void> fetchInitial() async {
     if (_isFetching) return;
@@ -50,7 +50,7 @@ class PropertyProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final result = await _repository.fetchProperties(
+      final result = await _getProperties(
         page: _page,
         limit: _limit,
         query: _searchQuery,
@@ -83,7 +83,7 @@ class PropertyProvider extends ChangeNotifier {
     }
 
     try {
-      final result = await _repository.fetchProperties(
+      final result = await _getProperties(
         page: _page,
         limit: _limit,
         query: _searchQuery,
