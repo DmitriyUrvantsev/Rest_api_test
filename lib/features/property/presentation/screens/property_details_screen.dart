@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../core/models/property_model.dart';
+import '../../domain/entities/property_entity.dart';
 
 class PropertyDetailsScreen extends StatelessWidget {
-  final PropertyModel property;
+  final PropertyEntity property;
 
   const PropertyDetailsScreen({super.key, required this.property});
 

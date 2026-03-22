@@ -1,4 +1,4 @@
-class PropertyModel {
+class PropertyDto {
   final String id;
   final String title;
   final int price;
@@ -7,7 +7,7 @@ class PropertyModel {
   final String city;
   String image;
 
-  PropertyModel({
+  PropertyDto({
     required this.id,
     required this.title,
     required this.price,
@@ -17,8 +17,8 @@ class PropertyModel {
     required this.image,
   });
 
-  factory PropertyModel.fromJson(Map<String, dynamic> json) {
-    return PropertyModel(
+  factory PropertyDto.fromJson(Map<String, dynamic> json) {
+    return PropertyDto(
       id: json['id'] as String,
       title: json['title'] as String,
       price: json['price'] as int,

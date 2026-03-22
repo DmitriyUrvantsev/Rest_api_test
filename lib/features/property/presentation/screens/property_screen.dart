@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:provider/provider.dart';
-import '../core/models/property_model.dart';
+import '../../domain/entities/property_entity.dart';
 import '../providers/property_provider.dart';
 import 'property_details_screen.dart';
 
@@ -122,7 +122,7 @@ class _PropertyListState extends State<_PropertyList> {
     final provider = context.read<PropertyProvider>();
 
     final properties = context
-        .select<PropertyProvider, List<PropertyModel>>((p) => p.properties);
+        .select<PropertyProvider, List<PropertyEntity>>((p) => p.properties);
 
     final isLoadingMore =
         context.select<PropertyProvider, bool>((p) => p.isLoadingMore);
@@ -143,9 +143,7 @@ class _PropertyListState extends State<_PropertyList> {
                   onChanged: _onSearchSubmitted,
                 ),
               ),
-
               const SizedBox(width: 8),
-
               ElevatedButton(
                 onPressed: () {
                   provider.applyFilter(
@@ -187,7 +185,7 @@ class _PropertyListState extends State<_PropertyList> {
 }
 
 class _PropertyCard extends StatelessWidget {
-  final PropertyModel property;
+  final PropertyEntity property;
 
   const _PropertyCard({super.key, required this.property});
 
@@ -221,7 +219,6 @@ class _PropertyCard extends StatelessWidget {
                 fit: BoxFit.cover,
               ),
             ),
-
             Padding(
               padding: const EdgeInsets.all(12),
               child: Column(

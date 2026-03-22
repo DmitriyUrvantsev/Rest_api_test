@@ -1,18 +1,19 @@
 import 'package:flutter/foundation.dart';
-import '../core/models/property_model.dart';
-import '../services/property_service.dart';
+import '../../domain/entities/property_entity.dart';
+import '../../domain/repositories/property_repository.dart';
+import '../../../../core/errors/failure.dart';
 
 enum ProgressState { initial, loading, success, error }
 
 class PropertyProvider extends ChangeNotifier {
-  final PropertyService _service = PropertyService();
+  final PropertyRepository _repository;
 
   ProgressState _state = ProgressState.initial;
   ProgressState get state => _state;
 
-  final List<PropertyModel> _properties = [];
-  List<PropertyModel> _filteredProperties = [];
-  List<PropertyModel> get properties => _filteredProperties;
+  final List<PropertyEntity> _properties = [];
+  List<PropertyEntity> _filteredProperties = [];
+  List<PropertyEntity> get properties => _filteredProperties;
 
   String _errorMessage = '';
   String get errorMessage => _errorMessage;
@@ -27,6 +28,9 @@ class PropertyProvider extends ChangeNotifier {
 
   String _searchQuery = '';
   String? _city;
+
+  PropertyProvider({required PropertyRepository repository})
+      : _repository = repository;
 
   Future<void> fetchInitial() async {
     if (_isFetching) return;
@@ -46,7 +50,7 @@ class PropertyProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final result = await _service.fetchProperties(
+      final result = await _repository.fetchProperties(
         page: _page,
         limit: _limit,
         query: _searchQuery,
@@ -59,7 +63,7 @@ class PropertyProvider extends ChangeNotifier {
 
       _applyFilters();
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = _getErrorMessage(e);
     } finally {
       _isFetching = false;
       _isLoadingMore = false;
@@ -79,7 +83,7 @@ class PropertyProvider extends ChangeNotifier {
     }
 
     try {
-      final result = await _service.fetchProperties(
+      final result = await _repository.fetchProperties(
         page: _page,
         limit: _limit,
         query: _searchQuery,
@@ -94,7 +98,7 @@ class PropertyProvider extends ChangeNotifier {
 
       _state = ProgressState.success;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = _getErrorMessage(e);
       if (_properties.isEmpty) _state = ProgressState.error;
     } finally {
       _isFetching = false;
@@ -121,5 +125,12 @@ class PropertyProvider extends ChangeNotifier {
 
   Future<void> refresh() async {
     await _fetchProperties(reset: true);
+  }
+
+  String _getErrorMessage(dynamic error) {
+    if (error is Failure) {
+      return error.message;
+    }
+    return 'Неизвестная ошибка';
   }
 }
