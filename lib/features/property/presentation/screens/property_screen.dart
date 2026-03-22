@@ -151,7 +151,7 @@ class _PropertyListState extends State<_PropertyList> {
   void _onSearchSubmitted(String value) {
     _debounce?.cancel();
 
-    _debounce = Timer(const Duration(milliseconds: 300), () {
+    _debounce = Timer(const Duration(milliseconds: 900), () {
       final provider = context.read<PropertyProvider>();
       final query = value.trim();
 

@@ -124,6 +124,8 @@ class PropertyProvider extends ChangeNotifier {
   }
 
   Future<void> refresh() async {
+    _searchQuery = '';
+    _city = null;
     await _fetchProperties(reset: true);
   }
 
