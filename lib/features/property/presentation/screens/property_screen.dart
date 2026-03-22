@@ -48,15 +48,23 @@ class _PropertyScreenState extends State<PropertyScreen> {
   Widget build(BuildContext context) {
     final state =
         context.select<PropertyProvider, ProgressState>((p) => p.state);
+    final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Flats')),
-      body: switch (state) {
-        ProgressState.loading => const _LoadingView(),
-        ProgressState.error => const _ErrorView(),
-        ProgressState.success => _PropertyList(controller: _controller),
-        ProgressState.initial => const SizedBox(),
-      },
+      appBar: AppBar(
+        title: const Text('Flats'),
+        backgroundColor: theme.colorScheme.primary,
+        foregroundColor: theme.colorScheme.onPrimary,
+      ),
+      body: Container(
+        color: theme.colorScheme.surface,
+        child: switch (state) {
+          ProgressState.loading => const _LoadingView(),
+          ProgressState.error => const _ErrorView(),
+          ProgressState.success => _PropertyList(controller: _controller),
+          ProgressState.initial => const SizedBox(),
+        },
+      ),
     );
   }
 }
@@ -66,7 +74,9 @@ class _LoadingView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(child: CircularProgressIndicator());
+    return const Center(
+      child: CircularProgressIndicator.adaptive(),
+    );
   }
 }
 
@@ -77,8 +87,44 @@ class _ErrorView extends StatelessWidget {
   Widget build(BuildContext context) {
     final error =
         context.select<PropertyProvider, String>((p) => p.errorMessage);
+    final theme = Theme.of(context);
 
-    return Center(child: Text('Ошибка - $error'));
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.error_outline,
+            size: 64,
+            color: theme.colorScheme.error,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Ошибка',
+            style: theme.textTheme.headlineSmall?.copyWith(
+              color: theme.colorScheme.error,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Text(
+              error,
+              style: theme.textTheme.bodyMedium,
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () {
+              context.read<PropertyProvider>().refresh();
+            },
+            icon: const Icon(Icons.refresh),
+            label: const Text('Повторить'),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -120,6 +166,7 @@ class _PropertyListState extends State<_PropertyList> {
   @override
   Widget build(BuildContext context) {
     final provider = context.read<PropertyProvider>();
+    final theme = Theme.of(context);
 
     final properties = context
         .select<PropertyProvider, List<PropertyEntity>>((p) => p.properties);
@@ -130,27 +177,33 @@ class _PropertyListState extends State<_PropertyList> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(16),
           child: Row(
             children: [
               Expanded(
                 child: TextField(
                   controller: _searchController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     hintText: 'Search...',
-                    border: OutlineInputBorder(),
+                    border: theme.inputDecorationTheme.border,
+                    filled: theme.inputDecorationTheme.filled,
+                    fillColor: theme.inputDecorationTheme.fillColor,
+                    focusedBorder: theme.inputDecorationTheme.focusedBorder,
+                    contentPadding: theme.inputDecorationTheme.contentPadding,
+                    prefixIcon: const Icon(Icons.search),
                   ),
                   onChanged: _onSearchSubmitted,
                 ),
               ),
-              const SizedBox(width: 8),
-              ElevatedButton(
+              const SizedBox(width: 12),
+              ElevatedButton.icon(
                 onPressed: () {
                   provider.applyFilter(
                     query: _searchController.text,
                   );
                 },
-                child: const Icon(Icons.search),
+                icon: const Icon(Icons.search),
+                label: const Text('Search'),
               ),
             ],
           ),
@@ -168,7 +221,7 @@ class _PropertyListState extends State<_PropertyList> {
                       ? const Center(
                           child: Padding(
                             padding: EdgeInsets.all(16),
-                            child: CircularProgressIndicator(),
+                            child: CircularProgressIndicator.adaptive(),
                           ),
                         )
                       : const SizedBox.shrink();
@@ -191,58 +244,141 @@ class _PropertyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(12),
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => PropertyDetailsScreen(property: property),
-          ),
-        );
-      },
-      child: Ink(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          color: Colors.grey.shade100,
-        ),
+    final theme = Theme.of(context);
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => PropertyDetailsScreen(property: property),
+            ),
+          );
+        },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
               borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(12)),
+                  const BorderRadius.vertical(top: Radius.circular(16)),
               child: Image.network(
                 property.image,
-                height: 160,
+                height: 200,
                 width: double.infinity,
                 fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    height: 200,
+                    color: theme.colorScheme.surfaceContainerHighest,
+                    child: Icon(
+                      Icons.broken_image,
+                      size: 48,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  );
+                },
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Container(
+                    height: 200,
+                    color: theme.colorScheme.surfaceContainerHighest,
+                    child: Center(
+                      child: CircularProgressIndicator.adaptive(
+                        value: loadingProgress.expectedTotalBytes != null
+                            ? loadingProgress.cumulativeBytesLoaded /
+                                loadingProgress.expectedTotalBytes!
+                            : null,
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     property.title,
-                    style: const TextStyle(
-                      fontSize: 16,
+                    style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    '${property.city} • ${property.rooms} rooms • ${property.area} m²',
-                    style: TextStyle(color: Colors.grey.shade600),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    '\$${property.price}',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_on,
+                        size: 16,
+                        color: theme.colorScheme.primary,
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          property.city,
+                          style: theme.textTheme.bodyMedium,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.meeting_room,
+                        size: 16,
+                        color: theme.colorScheme.secondary,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${property.rooms} rooms',
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                      const SizedBox(width: 16),
+                      Icon(
+                        Icons.square_foot,
+                        size: 16,
+                        color: theme.colorScheme.secondary,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${property.area} m²',
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '\$${property.price}',
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  PropertyDetailsScreen(property: property),
+                            ),
+                          );
+                        },
+                        child: const Text('View Details'),
+                      ),
+                    ],
                   ),
                 ],
               ),
